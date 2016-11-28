@@ -16,8 +16,8 @@
 
 /* ScriptData
 SDName: Boss_Ragnaros
-SD%Complete: 70
-SDComment: Melee/ Range Combat behavior is not correct(any enemy in melee range, not only getVictim), Some abilities are missing
+SD%Complete: 80
+SDComment: Some abilities are missing
 SDCategory: Molten Core
 EndScriptData */
 
@@ -167,6 +167,32 @@ struct boss_ragnarosAI : public Scripted_NoMovementAI
         if (pSpell->Id == SPELL_ELEMENTAL_FIRE_KILL && pTarget->GetTypeId() == TYPEID_UNIT && pTarget->GetEntry() == NPC_MAJORDOMO)
             m_uiEnterCombatTimer = 10000;
     }
+    
+    // Custom threat management
+    bool SelectHostileTarget()
+    {
+        Unit* pTarget = nullptr;
+        Unit* pOldTarget = m_creature->GetVictim();
+        
+        if (!m_creature->getThreatManager().isThreatListEmpty())
+            pTarget = m_creautre->getThreatManager.getHostileTarget();
+            
+        if (pTarget)
+        {
+            if (pOldTarget != pTarget)
+            AttackStart(pTarget);
+            
+            if(pOldTarget && pOldTarget->IsAlive())
+            {
+                m_creature->SetTargetGuid(pOldTarget->GetObjectGuid());
+                m_creature->SetInFront(pOldTarget);
+            }
+            
+            return true;
+        }
+        
+        return m_creature->SelectHostileTarget();
+    }
 
     void UpdateAI(const uint32 uiDiff) override
     {
@@ -199,7 +225,7 @@ struct boss_ragnarosAI : public Scripted_NoMovementAI
                 m_uiEnterCombatTimer -= uiDiff;
         }
         // Return since we have no target
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget())
             return;
 
         if (m_bIsSubmerged)
@@ -287,21 +313,10 @@ struct boss_ragnarosAI : public Scripted_NoMovementAI
         else
             m_uiSubmergeTimer -= uiDiff;
 
-        // TODO this actually should select _any_ enemy in melee range, not only the tank
-        // Range check for melee target, if nobody is found in range, then cast magma blast on random
-        // If we are within range melee the target
-        if (m_creature->IsNonMeleeSpellCasted(false) || !m_creature->getVictim())
-            return;
-
-        if (m_creature->CanReachWithMeleeAttack(m_creature->getVictim()))
+        if (m_creature->CanReachWithMeleeAttack(m_creature->getVictim())
         {
-            // Make sure our attack is ready
-            if (m_creature->isAttackReady())
-            {
-                m_creature->AttackerStateUpdate(m_creature->getVictim());
-                m_creature->resetAttackTimer();
-                m_bHasYelledMagmaBurst = false;
-            }
+            DoMeleeAttackIfReady();
+            m_uiMagmaBlastTimer = 3000; // Reset Magma Blast Timer.
         }
         else
         {
