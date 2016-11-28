@@ -16,8 +16,8 @@
 
 /* ScriptData
 SDName: Boss_Golemagg
-SD%Complete: 80
-SDComment: Rager need to be tied to boss (Despawn on boss-death)
+SD%Complete: 90
+SDComment: TODO: Find better way to implement Rager despawn
 SDCategory: Molten Core
 EndScriptData */
 
@@ -184,6 +184,12 @@ struct mob_core_ragerAI : public ScriptedAI
         }
         else
             m_uiMangleTimer -= uiDiff;
+            
+        if (Creature* pGolemagg = GetSingleCreatureFromStorage(NPC_GOLEMAGG))
+        {
+            if (!pGolemagg->IsAlive())
+                m_creature->ForcedDespawn();
+        }
 
         DoMeleeAttackIfReady();
     }
