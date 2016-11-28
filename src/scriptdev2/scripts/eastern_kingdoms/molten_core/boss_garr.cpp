@@ -117,10 +117,12 @@ struct mob_fireswornAI : public ScriptedAI
     ScriptedInstance* m_pInstance;
 
     uint32 m_uiSeparationCheckTimer;
+    uint32 m_uiEruptionTimer;
 
     void Reset() override
     {
         m_uiSeparationCheckTimer = 5000;
+        m_uiEruptionTimer = 20000; // Estimated value
     }
 
     void JustDied(Unit* /*pKiller*/) override
@@ -130,6 +132,10 @@ struct mob_fireswornAI : public ScriptedAI
             if (Creature* pGarr = m_pInstance->GetSingleCreatureFromStorage(NPC_GARR))
                 pGarr->CastSpell(pGarr, SPELL_ENRAGE, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, m_creature->GetObjectGuid());
         }
+        
+        // Cast Massive Eruption on death.
+        DoCastSpellIfCan(m_creature, SPELL_MASSIVE_ERUPTION);
+        m_creature->RemoveCorpse();
     }
     void JustReachedHome() override
     {
@@ -157,12 +163,13 @@ struct mob_fireswornAI : public ScriptedAI
         else
             m_uiSeparationCheckTimer -= uiDiff;
 
-        // Cast Erruption and let them die
-        if (m_creature->GetHealthPercent() <= 10.0f)
+        
+        if (m_uiEruptionTimer < uiDiff
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_ERUPTION);
-            m_creature->SetDeathState(JUST_DIED);
-            m_creature->RemoveCorpse();
+            if (DoSpellCastIfCan(m_creature, SPELL_ERUPTION) == CAST_OK)
+                m_uiEruptionTimer = 20000; // Estimated value
+            else
+                m_uiEruptionTimer -= uiDiff;
         }
 
         DoMeleeAttackIfReady();
