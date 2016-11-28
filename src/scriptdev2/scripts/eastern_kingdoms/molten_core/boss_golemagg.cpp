@@ -152,6 +152,15 @@ struct mob_core_ragerAI : public ScriptedAI
     {
         m_uiMangleTimer = 7 * IN_MILLISECONDS;              // These times are probably wrong
     }
+    
+    void GolemaggDied ()
+    {
+        if (Creature* pGolemagg = GetSingleCreatureFromStorage(NPC_GOLEMAGG))
+            {
+                if (!pGolemagg->IsAlive())
+                    m_creature->ForcedDespawn();
+            }
+    }
 
     void DamageTaken(Unit* /*pDoneBy*/, uint32& uiDamage) override
     {
@@ -184,12 +193,6 @@ struct mob_core_ragerAI : public ScriptedAI
         }
         else
             m_uiMangleTimer -= uiDiff;
-            
-        if (Creature* pGolemagg = GetSingleCreatureFromStorage(NPC_GOLEMAGG))
-        {
-            if (!pGolemagg->IsAlive())
-                m_creature->ForcedDespawn();
-        }
 
         DoMeleeAttackIfReady();
     }
