@@ -122,7 +122,7 @@ struct mob_fireswornAI : public ScriptedAI
     void Reset() override
     {
         m_uiSeparationCheckTimer = 5000;
-        m_uiEruptionTimer = 20000; // Estimated value
+        m_uiEruptionTimer = urand(30000, 45000); // Estimated value
     }
 
     void JustDied(Unit* /*pKiller*/) override
@@ -167,7 +167,7 @@ struct mob_fireswornAI : public ScriptedAI
         if (m_uiEruptionTimer < uiDiff
         {
             if (DoSpellCastIfCan(m_creature, SPELL_ERUPTION) == CAST_OK)
-                m_uiEruptionTimer = 20000; // Estimated value
+                m_uiEruptionTimer = urand(30000, 45000); // Estimated value
             else
                 m_uiEruptionTimer -= uiDiff;
         }
